@@ -109,7 +109,10 @@ def main():
             raw_data = get_latest_data()
             features_df = process_ticks_to_features(raw_data)
 
-            if not features_df.empty:
+            # CORRECCIÓN: Descartamos la última fila (vela actual en formación) para
+            # evaluar EXCLUSIVAMENTE velas 100% cerradas, idéntico al backtest.
+            if not features_df.empty and len(features_df) > HISTORICAL_BARS + 1:
+                features_df = features_df.iloc[:-1]
                 ultimo_indice = len(features_df) - 1
 
                 for symbol in SYMBOLS:
@@ -139,7 +142,7 @@ def main():
                         last_processed_times[symbol] = current_time
                         candle_counter[symbol] += 1
 
-                        log_event(f"\n--- 📈 [{symbol}] Nueva Vela [{current_time}] ---")
+                        log_event(f"\n--- 📈 [{symbol}] Nueva Vela Cerrada [{current_time}] ---")
 
                         if posicion_actual:
                             log_event(f"⚠️ [{symbol}] Posición activa en curso. Omitiendo...")
